@@ -1,4 +1,6 @@
-﻿using System.Security.Cryptography.X509Certificates;
+﻿using System.Net.Http.Headers;
+using System.Reflection.Metadata.Ecma335;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Exception_Lesson
 {
@@ -11,66 +13,55 @@ namespace Exception_Lesson
             string c = String.Empty;
             Console.WriteLine("Добро пожаловать.");
             Console.WriteLine("Решаем квадратное уравнение\n\ra * x^2 + b * x + c = 0");
+            bool Abool = false;
+            bool Bbool = false;
+            bool Cbool = false;
+            bool Dbool = true;
 
-            //int a;
-            //int b;
-            //int c;
-
-            QuadraticEquation QuadraticEquation = new QuadraticEquation();
-
-            Console.WriteLine($"a Из класса QuadraticEquation {QuadraticEquation.a}");
-            //try
-            //{
-
-                Console.WriteLine("Введите значение a");
+            while (Dbool)
+            {
+                Console.WriteLine("Введите значение A:");
                 a = Console.ReadLine();
-                Console.WriteLine("Введите значение b");
+                Console.WriteLine("Введите значение B:");
                 b = Console.ReadLine();
-                Console.WriteLine("Введите значение c");
+                Console.WriteLine("Введите значение C:");
                 c = Console.ReadLine();
 
-            if (int.TryParse(a, out int numValue))
-            {
-                QuadraticEquation.a = numValue;
+                try
+                {
+                    Validate(a, b, c);
+                    Dbool = false;
+
+                }
+                catch(Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+
             }
-            else
-            {
-                Console.WriteLine("Ошибка формата");
-            }
-                //QuadraticEquation.a = Int32.Parse(input);
-
-            //}
-
-            //Console.WriteLine("Введите значение b");
-            //QuadraticEquation.b = int.Parse(Console.ReadLine());
-
-            //Console.WriteLine("Введите значение b");
-            //QuadraticEquation.cc = Console.Read();
-
-            //catch (FormatException)
-            //{
-            //    Console.WriteLine($"Unable to parse '{a}'");
-            //    Console.WriteLine("косяк");
-            //}
-            //finally
-            //{
-            //    Console.WriteLine("Всё гуд");
-            //}
-
 
         }
 
-        //class QuadraticEquation
-        //{ 
-        //    public int aa;
-        //    public int bb;
-        //    public int cc;
+        static void Validate(string a, string b, string c)
+        {
+            int A;
+            bool Abool = Int32.TryParse(a, out A);
+            int B;
+            bool Bbool = Int32.TryParse(b, out B);
+            int C;
+            bool Cbool = Int32.TryParse(c, out C);
 
-        //    public void Print()
-        //    {
-        //        Console.WriteLine($"{aa}*x^2 + {bb}*x^+ {cc}  = 0");
-        //    }
-        //}
+            if (!Abool || !Bbool || !Cbool)
+            {
+                string Message = "Неверный формат параметра";
+                Message = $" {(Abool != true ? Message + " a: " + a : "")}\n" +
+                    $" {(Bbool != true ? Message + " b: " + b : "")}\n" +
+                    $"{(Cbool != true ? Message + " c: " + c : "")}";
 
+                throw new Exception(Message);
+            }
+
+
+        }
     }
 }
