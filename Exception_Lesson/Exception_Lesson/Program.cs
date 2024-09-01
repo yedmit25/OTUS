@@ -17,6 +17,8 @@ namespace Exception_Lesson
             bool Bbool = false;
             bool Cbool = false;
             bool Dbool = true;
+            QuadraticEquation quadraticEquation = new QuadraticEquation();
+
 
             while (Dbool)
             {
@@ -30,8 +32,8 @@ namespace Exception_Lesson
                 try
                 {
                     Validate(a, b, c);
-                    Dbool = false;
-
+                    quadraticEquation.Сomputation(a, b, c);
+                    break;
                 }
                 catch(Exception e)
                 {
@@ -44,12 +46,12 @@ namespace Exception_Lesson
 
         static void Validate(string a, string b, string c)
         {
-            int A;
-            bool Abool = Int32.TryParse(a, out A);
-            int B;
-            bool Bbool = Int32.TryParse(b, out B);
-            int C;
-            bool Cbool = Int32.TryParse(c, out C);
+            double A;
+            bool Abool = double.TryParse(a, out A);
+            double B;
+            bool Bbool = double.TryParse(b, out B);
+            double C;
+            bool Cbool = double.TryParse(c, out C);
 
             if (!Abool || !Bbool || !Cbool)
             {
@@ -60,8 +62,6 @@ namespace Exception_Lesson
 
                 throw new Exception(Message);
             }
-
-
         }
     }
 }
