@@ -57,11 +57,14 @@ namespace Exception_Lesson
 
                 Console.WriteLine($"x1 = {x1}\n" +
                     $"{(D > 0 ? "x2 = " + x2 : "")}");
-            }
+        }
             catch (Exception e)
             {
+                Console.ForegroundColor = ConsoleColor.Black;
+                Console.BackgroundColor = ConsoleColor.DarkYellow;
                 Console.WriteLine(e.Message);
+                Console.ResetColor();
             }
-        }
+}
     }
 }

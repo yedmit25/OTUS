@@ -1,13 +1,22 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Drawing;
+using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography.X509Certificates;
+using System.Collections;
 
 namespace Exception_Lesson
 {
     internal class Program
     {
+        enum Severity
+        {
+            Warning,
+            Error,
+            Information,
+        }
         static void Main(string[] args)
         {
+
             string a = String.Empty;
             string b = String.Empty;
             string c = String.Empty;
@@ -16,11 +25,9 @@ namespace Exception_Lesson
             bool Abool = false;
             bool Bbool = false;
             bool Cbool = false;
-            bool Dbool = true;
             QuadraticEquation quadraticEquation = new QuadraticEquation();
 
-
-            while (Dbool)
+            while (true)
             {
                 Console.WriteLine("Введите значение A:");
                 a = Console.ReadLine();
@@ -32,15 +39,19 @@ namespace Exception_Lesson
                 try
                 {
                     Validate(a, b, c);
-                    quadraticEquation.Сomputation(a, b, c);
                     break;
                 }
                 catch(Exception e)
                 {
+                    Console.ForegroundColor = ConsoleColor.Black;
+                    Console.BackgroundColor = ConsoleColor.Red;
                     Console.WriteLine(e.Message);
+                    Console.ResetColor();
                 }
 
             }
+
+            quadraticEquation.Сomputation(a, b, c);
 
         }
 
@@ -55,13 +66,20 @@ namespace Exception_Lesson
 
             if (!Abool || !Bbool || !Cbool)
             {
-                string Message = "Неверный формат параметра";
-                Message = $" {(Abool != true ? Message + " a: " + a : "")}\n" +
-                    $" {(Bbool != true ? Message + " b: " + b : "")}\n" +
-                    $"{(Cbool != true ? Message + " c: " + c : "")}";
-
+                string line = "--------------------------------------------------";
+                String Message = "Неверный формат параметра:";
+                string Params;
+                Params = $"{(Abool != true ?  "a;" : "")}" +
+                    $"{(Bbool != true ? " b;" : "")}" +
+                    $"{(Cbool != true ? " c;" : "")}\n" +
+                    $"{line}\n" +
+                    $"a = {a}\n" +
+                    $"b = {b}\n" +
+                    $"c = {c}\n";
+                Message = line + "\n" + Message + Params;
                 throw new Exception(Message);
             }
         }
+
     }
 }
