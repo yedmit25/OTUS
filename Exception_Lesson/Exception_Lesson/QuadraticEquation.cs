@@ -10,61 +10,38 @@ namespace Exception_Lesson
     internal class QuadraticEquation
     {
 
-        //public int ?a;
-        //public int ?b;
-        //public int ?c;
-
-        //public void Print()
-        //{
-        //    Console.WriteLine($"{a}*x^2 + {b}*x^+ {c}  = 0");
-        //}
-
-        public void Discriminant(double A, double B, double C, out double result)
+        public void Discriminant(double a, double b, double c, out double result)
         {
-            result = (long)Math.Pow(B, 2) - (long)(4 * A * C);
+            //Вычисляем дискриминант
+            result = (long)Math.Pow(b, 2) - (long)(4 * a * c);
             if (result < 0)
             {
-                string Message = "Нет корней";
-                throw new Exception(Message);
+                string message = "Вещественных значений не найдено:";
+                throw new OtusException(message);
             }
         }
-        public void Сomputation(string a, string b, string c)
+        public void Сomputation(double a, double b, double c)
         {
-            double D;
-            double A;
-            double B;
-            double C;
-            A = double.Parse(a);
-            B = double.Parse(b);
-            C = double.Parse(c);
-
-            try
+            //Дискриминант
+            double d;
+            //Корни уровнения
+            double x1 = 0;
+            double x2 = 0;
+            Discriminant(a, b, c, out d);
+            if (d>0)
             {
 
-                double x1 = 0;
-                double x2 = 0;
-                Discriminant(A, B, C, out D);
-                if (D>0)
-                {
-
-                    x1 = (-B + Math.Sqrt(D)) / 2 * A;
-                    x2 = (-B - Math.Sqrt(D)) / 2 * A;
-                } else
-                {
-                    x1 = (-B + Math.Sqrt(D)) / 2 * A;
-                }
-
-
-                Console.WriteLine($"x1 = {x1}\n" +
-                    $"{(D > 0 ? "x2 = " + x2 : "")}");
-        }
-            catch (Exception e)
+                x1 = (-b + Math.Sqrt(d)) / 2 * a;
+                x2 = (-b - Math.Sqrt(d)) / 2 * a;
+            } else
             {
-                Console.ForegroundColor = ConsoleColor.Black;
-                Console.BackgroundColor = ConsoleColor.DarkYellow;
-                Console.WriteLine(e.Message);
-                Console.ResetColor();
+                x1 = (-b + Math.Sqrt(d)) / 2 * a;
             }
-}
+            // Выводим решение уравнения
+            Console.WriteLine($"x1 = {x1}\n" +
+                $"{(d > 0 ? "x2 = " + x2 : "")}");
+        
+         }
+
     }
 }

@@ -17,67 +17,112 @@ namespace Exception_Lesson
         static void Main(string[] args)
         {
 
+            Dictionary<string, string> paramsDictionary = new();
+            Dictionary<string, bool> paramsValidate = new();
+            List<double> paramsListValid = new ();
+
             string a = String.Empty;
             string b = String.Empty;
             string c = String.Empty;
             Console.WriteLine("Добро пожаловать.");
             Console.WriteLine("Решаем квадратное уравнение\n\ra * x^2 + b * x + c = 0");
-            bool Abool = false;
-            bool Bbool = false;
-            bool Cbool = false;
-            QuadraticEquation quadraticEquation = new QuadraticEquation();
-
+            QuadraticEquation QuadraticEquation = new QuadraticEquation();
             while (true)
             {
                 Console.WriteLine("Введите значение A:");
                 a = Console.ReadLine();
+                paramsDictionary.Add("a", a);
                 Console.WriteLine("Введите значение B:");
                 b = Console.ReadLine();
+                paramsDictionary.Add("b", b);
                 Console.WriteLine("Введите значение C:");
                 c = Console.ReadLine();
-
+                paramsDictionary.Add("c", c);
                 try
                 {
-                    Validate(a, b, c);
+                    ValidateParams(paramsDictionary, paramsValidate, paramsListValid);
+                    QuadraticEquation.Сomputation(paramsListValid[0], paramsListValid[1], paramsListValid[2]);
                     break;
                 }
-                catch(Exception e)
+                catch (FormatException ex)
                 {
-                    Console.ForegroundColor = ConsoleColor.Black;
-                    Console.BackgroundColor = ConsoleColor.Red;
-                    Console.WriteLine(e.Message);
-                    Console.ResetColor();
+                    FormatData(ex.Message, Severity.Error, paramsDictionary, paramsValidate);
+                }
+                catch (OtusException ex)
+                {
+                    FormatData(ex.Message, Severity.Warning, paramsDictionary, paramsValidate);
+                }
+                finally
+                {
+
+                    paramsDictionary.Clear();
+                    paramsValidate.Clear();
+                    paramsListValid.Clear();
                 }
 
             }
 
-            quadraticEquation.Сomputation(a, b, c);
+
 
         }
 
-        static void Validate(string a, string b, string c)
+        static void ValidateParams(Dictionary<string, string> paramsDictionary, Dictionary<string, bool> paramsValidate, List<double> paramsListValid)
         {
-            double A;
-            bool Abool = double.TryParse(a, out A);
-            double B;
-            bool Bbool = double.TryParse(b, out B);
-            double C;
-            bool Cbool = double.TryParse(c, out C);
+            bool isValidParam = false;;
+            double validParam;
 
-            if (!Abool || !Bbool || !Cbool)
+            foreach (KeyValuePair<string, string> entry in paramsDictionary)
+            {
+                isValidParam = double.TryParse(entry.Value, out validParam);
+                paramsValidate.Add(entry.Key, isValidParam);
+                paramsListValid.Add(validParam);
+            }
+            if (paramsValidate.Values.Contains(false))
+            {
+                throw new FormatException("Неверный формат параметра:");
+            } 
+
+        }
+        static void FormatData(string message, Severity severity, Dictionary<string, string> paramsDictionary, Dictionary<string, bool> paramsValidate)
+        {
+            Console.WriteLine(message);
+            if (severity == Severity.Error)
             {
                 string line = "--------------------------------------------------";
-                String Message = "Неверный формат параметра:";
-                string Params;
-                Params = $"{(Abool != true ?  "a;" : "")}" +
-                    $"{(Bbool != true ? " b;" : "")}" +
-                    $"{(Cbool != true ? " c;" : "")}\n" +
-                    $"{line}\n" +
-                    $"a = {a}\n" +
-                    $"b = {b}\n" +
-                    $"c = {c}\n";
-                Message = line + "\n" + Message + Params;
-                throw new Exception(Message);
+                Console.BackgroundColor = ConsoleColor.Red;
+                Console.ForegroundColor = ConsoleColor.White;
+                string invalidParams = "";
+
+                foreach (KeyValuePair<string, bool> entry in paramsValidate)
+                {
+                    if (entry.Value == false)
+                    {
+                        invalidParams = invalidParams + $"{entry.Key}; ";
+                    }
+                }
+                string exceptinMessage = "";
+                string listParams="";
+                foreach (KeyValuePair<string, string> entry in paramsDictionary)
+                {
+                    listParams = listParams + $"{entry.Key} = {entry.Value}\n";
+                }
+
+                exceptinMessage = $"{line}\n{message} {invalidParams}\n{line}\n" +
+                    $"{listParams}";
+
+                Console.WriteLine(exceptinMessage);
+                Console.ResetColor();
+            } else if (severity == Severity.Warning)
+            {
+                Console.BackgroundColor = ConsoleColor.Yellow;
+                Console.ForegroundColor = ConsoleColor.Black;
+
+                Console.WriteLine($"{message}\n");
+                Console.ResetColor();
+            }
+            else
+            {
+                Console.ResetColor();
             }
         }
 
