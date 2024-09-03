@@ -10,8 +10,8 @@
             {
 
                 Console.WriteLine(s.Top);
-
-                s.Pop(out string ss);
+                string ss;
+                ss = s.Pop();
 
                 Console.WriteLine(ss);
 
@@ -22,9 +22,32 @@
                 Console.WriteLine(sm.Top);
 
 
+                var st1 = new Stack("1", "2", "3", "5");
+                var st2 = new Stack("_zxq", "_poi_", "_bhuy");
 
-                sm.Pop(out string stm);
+                foreach (var x in st1)
+                {
+                    Console.WriteLine("Стек 1 " + x);
+                }
+
+                foreach (var x in st2)
+                {
+
+                    Console.WriteLine("Стек 2 " + x);
+                }
+
+
+
+                st1.Merge(st2);
+
+                foreach (var x in st1)
+                {
+                    Console.WriteLine("Стек после объединения " + x);
+                }
+                string stm = sm.Pop();
                 Console.WriteLine(stm);
+
+                
             }
             catch (Exception ex)
             {

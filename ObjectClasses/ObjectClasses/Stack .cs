@@ -28,9 +28,9 @@ namespace ObjectClasses
         public void Add(string val)
         { _list.Add(val); }
 
-        public void Pop(out string item)
+        public string Pop()
         {
-
+            string item;
             if (_list.Count > 0)
             {
 
@@ -41,6 +41,7 @@ namespace ObjectClasses
             {
                 throw new Exception("Стек пустой");
             }
+            return item;
         } 
     
 
