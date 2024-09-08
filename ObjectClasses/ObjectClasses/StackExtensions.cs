@@ -12,14 +12,19 @@ namespace ObjectClasses
         {
             int _size = slaveStack.Size;
 
-            for (var i=0; i < _size; i++)
+            List<string> _sttmList = new();
+
+            for (var i = 0; i < _size; i++)
             {
-                
-                mainStack.Add(slaveStack.Pop());
 
-                slaveStack.GetEnumerator();
-
+                _sttmList.Add(slaveStack.Pop());
             }
+
+            foreach (var sttm in _sttmList.Reverse<string>())
+            {
+                mainStack.Add(sttm);
+            }
+
         }
     }
 }

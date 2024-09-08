@@ -10,8 +10,9 @@ namespace ObjectClasses
 {
     public class Stack : IEnumerable
     {
-        public int Size 
-        { get
+        public int Size
+        {
+            get
             {
                 return _list.Count;
             }
@@ -37,18 +38,48 @@ namespace ObjectClasses
                 item = _list.First();
 
                 _list.RemoveAt(0);
-            } else
+            }
+            else
             {
                 throw new Exception("Стек пустой");
             }
             return item;
-        } 
-    
+        }
+
+        public static Stack Concat(params Stack[] stacks)
+        {
+            var _Stack = new Stack();
+
+            int i = 0;
+
+            List<string> _sttmList = new();
+
+            foreach (var item in stacks)
+            {
+                int _size = item.Size;
+
+                for (i = 0; i < _size; i++)
+                {
+                    _sttmList.Add(item.Pop());
+                }
+
+                foreach (var sttm in _sttmList.Reverse<string>())
+                {
+                    _Stack.Add(sttm);
+                }
+                _sttmList.Clear();
+
+            }
+
+
+            return _Stack;
+
+        }
 
 
         private List<string> _list = new();
 
-        public Stack (params string[] val)
+        public Stack(params string[] val)
         {
             foreach (string s in val)
             {
@@ -57,11 +88,11 @@ namespace ObjectClasses
         }
 
 
-
-    public IEnumerator GetEnumerator()
-    {
-        return _list.GetEnumerator();
+        public IEnumerator GetEnumerator()
+        {
+            return _list.GetEnumerator();
+        }
     }
-}
+
 }
 
