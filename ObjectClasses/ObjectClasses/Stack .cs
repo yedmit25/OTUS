@@ -35,9 +35,9 @@ namespace ObjectClasses
             if (_list.Count > 0)
             {
 
-                item = _list.First();
+                item = _list.Last();
 
-                _list.RemoveAt(0);
+                _list.Remove(item);
             }
             else
             {
@@ -52,7 +52,6 @@ namespace ObjectClasses
 
             int i = 0;
 
-            List<string> _sttmList = new();
 
             foreach (var item in stacks)
             {
@@ -60,14 +59,8 @@ namespace ObjectClasses
 
                 for (i = 0; i < _size; i++)
                 {
-                    _sttmList.Add(item.Pop());
+                    _Stack.Add(item.Pop());
                 }
-
-                foreach (var sttm in _sttmList.Reverse<string>())
-                {
-                    _Stack.Add(sttm);
-                }
-                _sttmList.Clear();
 
             }
 

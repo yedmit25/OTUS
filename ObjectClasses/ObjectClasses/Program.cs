@@ -20,15 +20,10 @@
                 var deleted = s.Pop();
                 // Извлек верхний элемент 'sdfsdf' Size = 4
                 Console.WriteLine($"Извлек верхний элемент '{deleted}' Size = {s.Size}");
-                s.Add("d");
+                //s.Add("d");
                 // size = 4, Top = 'd'
                 Console.WriteLine($"Добавили новый элемент\n\rsize = {s.Size}, Top = '{s.Top}'");
-                Console.WriteLine("Удалеяем все элементы посредством метода Pop()");
-                s.Pop();
-                s.Pop();
-                s.Pop();
-                s.Pop();
-                s.Pop();
+
                 // size = 0, Top = null
                 Console.WriteLine($"size = {s.Size}, Top = {(s.Top == null ? "null" : s.Top)}");
 
@@ -40,7 +35,7 @@
                 var smerge = new Stack("A", "B", "C", "D");
 
                 smerge.Merge(new Stack("1", "2", "3", "4"));
-                Console.WriteLine("Объединенный массив А и Б");
+                Console.WriteLine("\nОбъединенный массив А и Б");
                 foreach (var m in smerge)
                 {
                     Console.Write($"{m};");
@@ -85,7 +80,11 @@
                 {
                     Console.Write($"{item}; ");
                 }
-
+                Console.WriteLine("\nУдаляем все элементы посредством метода Pop()");
+                s.Pop();
+                s.Pop();
+                s.Pop();
+                s.Pop();
 
                 Console.WriteLine("\nПытаемся удалить элемент из пустого массива S");
                 s.Pop();
