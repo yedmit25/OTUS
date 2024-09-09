@@ -12,17 +12,10 @@ namespace ObjectClasses
         {
             int _size = slaveStack.Size;
 
-            List<string> _sttmList = new();
-
             for (var i = 0; i < _size; i++)
             {
 
-                _sttmList.Add(slaveStack.Pop());
-            }
-
-            foreach (var sttm in _sttmList.Reverse<string>())
-            {
-                mainStack.Add(sttm);
+                mainStack.Add(slaveStack.Pop());
             }
 
         }
