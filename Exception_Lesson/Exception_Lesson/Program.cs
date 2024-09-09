@@ -44,13 +44,13 @@ namespace Exception_Lesson
                     QuadraticEquation.Сomputation(paramsListValid[0], paramsListValid[1], paramsListValid[2]);
                     break;
                 }
+                catch (OtusException mes)
+                {
+                    FormatData(mes.Message, Severity.Warning, paramsDictionary, paramsValidate);
+                }
                 catch (FormatException ex)
                 {
                     FormatData(ex.Message, Severity.Error, paramsDictionary, paramsValidate);
-                }
-                catch (OtusException ex)
-                {
-                    FormatData(ex.Message, Severity.Warning, paramsDictionary, paramsValidate);
                 }
                 finally
                 {
@@ -85,7 +85,6 @@ namespace Exception_Lesson
         }
         static void FormatData(string message, Severity severity, Dictionary<string, string> paramsDictionary, Dictionary<string, bool> paramsValidate)
         {
-            Console.WriteLine(message);
             if (severity == Severity.Error)
             {
                 string line = "--------------------------------------------------";
