@@ -85,7 +85,6 @@ namespace Exception_Lesson
         }
         static void FormatData(string message, Severity severity, Dictionary<string, string> paramsDictionary, Dictionary<string, bool> paramsValidate)
         {
-            Console.WriteLine(message);
             if (severity == Severity.Error)
             {
                 string line = "--------------------------------------------------";
