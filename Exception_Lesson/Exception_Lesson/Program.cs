@@ -3,8 +3,6 @@ using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography.X509Certificates;
 using System.Collections;
-using System.Linq.Expressions;
-using System.Linq;
 
 namespace Exception_Lesson
 {
@@ -21,9 +19,7 @@ namespace Exception_Lesson
 
             Dictionary<string, string> paramsDictionary = new();
             Dictionary<string, bool> paramsValidate = new();
-
-            Dictionary<string, string> ErrorValidate = new();
-            List<Int64> paramsListValid = new ();
+            List<double> paramsListValid = new ();
 
             string a = String.Empty;
             string b = String.Empty;
@@ -31,13 +27,6 @@ namespace Exception_Lesson
             Console.WriteLine("Добро пожаловать.");
             Console.WriteLine("Решаем квадратное уравнение\n\ra * x^2 + b * x + c = 0");
             QuadraticEquation QuadraticEquation = new QuadraticEquation();
-
-            //Quadra quadra = new Quadra();
-            //quadra.b = b;
-            //quadra.c = c;
-            //quadra.a = a;
-
-
             while (true)
             {
                 Console.WriteLine("Введите значение A:");
@@ -51,7 +40,7 @@ namespace Exception_Lesson
                 paramsDictionary.Add("c", c);
                 try
                 {
-                    ValidateParams(paramsDictionary, paramsValidate, ErrorValidate, paramsListValid);
+                    ValidateParams(paramsDictionary, paramsValidate, paramsListValid);
                     QuadraticEquation.Сomputation(paramsListValid[0], paramsListValid[1], paramsListValid[2]);
                     break;
                 }
@@ -69,7 +58,6 @@ namespace Exception_Lesson
                     paramsDictionary.Clear();
                     paramsValidate.Clear();
                     paramsListValid.Clear();
-                    ErrorValidate.Clear();
                 }
 
             }
@@ -78,36 +66,20 @@ namespace Exception_Lesson
 
         }
 
-        static void ValidateParams(Dictionary<string, string> paramsDictionary, Dictionary<string, bool> paramsValidate, Dictionary<string, string> ErrorValidate, List<Int64> paramsListValid)
+        static void ValidateParams(Dictionary<string, string> paramsDictionary, Dictionary<string, bool> paramsValidate, List<double> paramsListValid)
         {
             bool isValidParam = false;;
-            Int64 validParam = 0;
+            double validParam;
 
             foreach (KeyValuePair<string, string> entry in paramsDictionary)
             {
-
-                try
-                {
-                    validParam = Int64.Parse(entry.Value);
-                    paramsValidate.Add(entry.Key, true);
-                    paramsListValid.Add(validParam);
-                }
-                catch (FormatException ex)
-                {
-                    ErrorValidate.Add(entry.Key, ex.Message);
-                }
-                catch (OverflowException ex)
-                {
-                    ErrorValidate.Add(entry.Key, ex.Message);
-                }
-
-                //isValidParam = Int64.TryParse(entry.Value, out validParam);
-                //paramsValidate.Add(entry.Key, isValidParam);
-                //paramsListValid.Add(validParam);
+                isValidParam = double.TryParse(entry.Value, out validParam);
+                paramsValidate.Add(entry.Key, isValidParam);
+                paramsListValid.Add(validParam);
             }
-            if (ErrorValidate.Count() != 0)
+            if (paramsValidate.Values.Contains(false))
             {
-                throw new FormatException(ErrorValidate.Values.First());
+                throw new FormatException("Неверный формат параметра:");
             } 
 
         }
