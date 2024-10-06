@@ -10,7 +10,7 @@ namespace Exception_Lesson
     internal class QuadraticEquation
     {
 
-        public void Discriminant(double a, double b, double c, out double result)
+        public void Discriminant(int a, int b, int c, out double result)
         {
             //Вычисляем дискриминант
             result = (long)Math.Pow(b, 2) - (long)(4 * a * c);
@@ -20,7 +20,7 @@ namespace Exception_Lesson
                 throw new OtusException(message);
             }
         }
-        public void Сomputation(double a, double b, double c)
+        public void Сomputation(int a, int b, int c)
         {
             //Дискриминант
             double d;
@@ -42,6 +42,15 @@ namespace Exception_Lesson
                 $"{(d > 0 ? "x2 = " + x2 : "")}");
         
          }
+        public void OutPut(List<int> outputParams)
+        {
+
+            int a = +1 * outputParams[0];
+            int b = +1 * outputParams[1];
+            int c = +1 * outputParams[2];
+
+            Console.WriteLine($"Решаем квадратное уравнение\n\r{a} * x^2 {(b < 0 ? "":"+")} {b} * x {(c < 0 ? "" : "+")} {c} = 0");
+        }
 
     }
 }
