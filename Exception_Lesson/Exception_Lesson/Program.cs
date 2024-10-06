@@ -21,26 +21,16 @@ namespace Exception_Lesson
             Dictionary<string, bool> paramsValidate = new();
             List<double> paramsListValid = new ();
 
-            string a = String.Empty;
-            string b = String.Empty;
-            string c = String.Empty;
             Console.WriteLine("Добро пожаловать.");
             Console.WriteLine("Решаем квадратное уравнение\n\ra * x^2 + b * x + c = 0");
             QuadraticEquation QuadraticEquation = new QuadraticEquation();
             while (true)
             {
-                Console.WriteLine("Введите значение A:");
-                a = Console.ReadLine();
-                paramsDictionary.Add("a", a);
-                Console.WriteLine("Введите значение B:");
-                b = Console.ReadLine();
-                paramsDictionary.Add("b", b);
-                Console.WriteLine("Введите значение C:");
-                c = Console.ReadLine();
-                paramsDictionary.Add("c", c);
+                InputValues(paramsDictionary);
                 try
                 {
                     ValidateParams(paramsDictionary, paramsValidate, paramsListValid);
+                    QuadraticEquation.OutPut(paramsListValid);
                     QuadraticEquation.Сomputation(paramsListValid[0], paramsListValid[1], paramsListValid[2]);
                     break;
                 }
@@ -64,6 +54,22 @@ namespace Exception_Lesson
 
 
 
+        }
+
+        static void InputValues(Dictionary<string, string> paramsDictionary)
+        {
+            string a = String.Empty;
+            string b = String.Empty;
+            string c = String.Empty;
+            Console.WriteLine("Введите значение A:");
+            a = Console.ReadLine();
+            paramsDictionary.Add("a", a);
+            Console.WriteLine("Введите значение B:");
+            b = Console.ReadLine();
+            paramsDictionary.Add("b", b);
+            Console.WriteLine("Введите значение C:");
+            c = Console.ReadLine();
+            paramsDictionary.Add("c", c);
         }
 
         static void ValidateParams(Dictionary<string, string> paramsDictionary, Dictionary<string, bool> paramsValidate, List<double> paramsListValid)

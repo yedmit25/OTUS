@@ -42,6 +42,16 @@ namespace Exception_Lesson
                 $"{(d > 0 ? "x2 = " + x2 : "")}");
         
          }
+        public void OutPut(List<double> paramsListValid)
+        {
+            string Quadratic = "Решаем квадратное уравнение\n\r";
+
+            double a = +1 * paramsListValid[0];
+            double b = +1 * paramsListValid[1];
+            double c = +1 * paramsListValid[2];
+
+            Console.WriteLine($"Решаем квадратное уравнение\n\r{a} * x^2 {(b < 0 ? "":"+")} {b} * x {(c < 0 ? "" : "+")} {c} = 0");
+        }
 
     }
 }
