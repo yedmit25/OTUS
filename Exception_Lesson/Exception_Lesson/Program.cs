@@ -14,40 +14,52 @@ namespace Exception_Lesson
             Error,
             Information,
         }
+        enum ExceptionType
+        {
+            Overflow,
+            Format
+        }
+
         static void Main(string[] args)
         {
-
-            Dictionary<string, string> paramsDictionary = new();
-            Dictionary<string, bool> paramsValidate = new();
-            List<double> paramsListValid = new ();
+            //// Определяем справочник сообщений об ошибках
+            //Dictionary<ExceptionType, string> ExceptionDictionary = new();
+            //ExceptionDictionary.Add(ExceptionType.Overflow, "Введённое значение должно находиться в диапозоне от -2147483648 до 2147483647");
+            //ExceptionDictionary.Add(ExceptionType.Format, "Неверный формат параметра");
+            //
+            Dictionary<string, string> inputParams = new();
+            Dictionary<string, bool> validateParams = new();
+            Dictionary<string, ExceptionType> errorParams = new();
+            List<int> outputParams = new ();
 
             Console.WriteLine("Добро пожаловать.");
             Console.WriteLine("Решаем квадратное уравнение\n\ra * x^2 + b * x + c = 0");
             QuadraticEquation QuadraticEquation = new QuadraticEquation();
             while (true)
             {
-                InputValues(paramsDictionary);
+                InputValues(inputParams);
                 try
                 {
-                    ValidateParams(paramsDictionary, paramsValidate, paramsListValid);
-                    QuadraticEquation.OutPut(paramsListValid);
-                    QuadraticEquation.Сomputation(paramsListValid[0], paramsListValid[1], paramsListValid[2]);
+                    ValidateParams(inputParams, validateParams, outputParams, errorParams);
+                    QuadraticEquation.OutPut(outputParams);
+                    QuadraticEquation.Сomputation(outputParams[0], outputParams[1], outputParams[2]);
                     break;
                 }
-                catch (FormatException ex)
+                catch (InputException ex)
                 {
-                    FormatData(ex.Message, Severity.Error, paramsDictionary, paramsValidate);
+                    FormatData(ex.Message, Severity.Error, inputParams, validateParams, errorParams);
                 }
                 catch (OtusException ex)
                 {
-                    FormatData(ex.Message, Severity.Warning, paramsDictionary, paramsValidate);
+                    FormatData(ex.Message, Severity.Warning, inputParams, validateParams, errorParams);
                 }
                 finally
                 {
 
-                    paramsDictionary.Clear();
-                    paramsValidate.Clear();
-                    paramsListValid.Clear();
+                    inputParams.Clear();
+                    validateParams.Clear();
+                    outputParams.Clear();
+                    errorParams.Clear();
                 }
 
             }
@@ -56,67 +68,118 @@ namespace Exception_Lesson
 
         }
 
-        static void InputValues(Dictionary<string, string> paramsDictionary)
+        static void InputValues(Dictionary<string, string> inputParams)
         {
             string a = String.Empty;
             string b = String.Empty;
             string c = String.Empty;
             Console.WriteLine("Введите значение A:");
             a = Console.ReadLine();
-            paramsDictionary.Add("a", a);
+            inputParams.Add("a", a);
             Console.WriteLine("Введите значение B:");
             b = Console.ReadLine();
-            paramsDictionary.Add("b", b);
+            inputParams.Add("b", b);
             Console.WriteLine("Введите значение C:");
             c = Console.ReadLine();
-            paramsDictionary.Add("c", c);
+            inputParams.Add("c", c);
         }
 
-        static void ValidateParams(Dictionary<string, string> paramsDictionary, Dictionary<string, bool> paramsValidate, List<double> paramsListValid)
+        static void ValidateParams(Dictionary<string, string> inputParams, Dictionary<string, bool> validateParams, List<int> outputParams, Dictionary<string, ExceptionType> errorParams)
         {
             bool isValidParam = false;;
-            double validParam;
+            int validParam;
 
-            foreach (KeyValuePair<string, string> entry in paramsDictionary)
+            foreach (KeyValuePair<string, string> entry in inputParams)
             {
-                isValidParam = double.TryParse(entry.Value, out validParam);
-                paramsValidate.Add(entry.Key, isValidParam);
-                paramsListValid.Add(validParam);
+
+                try
+                {
+                    outputParams.Add(int.Parse(entry.Value));
+                }
+                catch (FormatException ex)
+                {
+                    errorParams.Add(entry.Key, ExceptionType.Format);
+                }
+                catch (OverflowException ex)
+                {
+                    errorParams.Add(entry.Key, ExceptionType.Overflow);
+                }
+                    
             }
-            if (paramsValidate.Values.Contains(false))
+            if (errorParams.Count()!=0)
             {
-                throw new FormatException("Неверный формат параметра:");
-            } 
+                ExceptionType index = ExceptionType.Overflow;
+
+                string message = "Неверный формат параметра";
+                throw new InputException(message);
+            }
 
         }
-        static void FormatData(string message, Severity severity, Dictionary<string, string> paramsDictionary, Dictionary<string, bool> paramsValidate)
+        static void FormatData(string message, Severity severity, Dictionary<string, string> inputParams, Dictionary<string, bool> validateParams, Dictionary<string, ExceptionType> errorParams)
         {
+
             if (severity == Severity.Error)
             {
-                string line = "--------------------------------------------------";
-                Console.BackgroundColor = ConsoleColor.Red;
-                Console.ForegroundColor = ConsoleColor.White;
+                string listParams = "";
                 string invalidParams = "";
 
-                foreach (KeyValuePair<string, bool> entry in paramsValidate)
+                // Собираем сообщение об ошибке формата
+                if (errorParams.ContainsValue(ExceptionType.Format))
                 {
-                    if (entry.Value == false)
+                    string line = "--------------------------------------------------";
+
+                    string exceptionMessageFormat = "";
+                    foreach (KeyValuePair<string, ExceptionType> entry in errorParams)
                     {
-                        invalidParams = invalidParams + $"{entry.Key}; ";
+                        if (entry.Value == ExceptionType.Format)
+                        {
+                            invalidParams = invalidParams + $"{entry.Key}; ";
+
+                            listParams = listParams + $"{entry.Key} = {inputParams[entry.Key]}\n";
+                        }
+
                     }
+
+                    exceptionMessageFormat = $"{line}\n{message} {invalidParams}\n{line}\n" +
+                        $"{listParams}";
+
+                    Console.BackgroundColor = ConsoleColor.Red;
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.WriteLine(exceptionMessageFormat);
+
+                    Console.ResetColor();
+
                 }
-                string exceptinMessage = "";
-                string listParams="";
-                foreach (KeyValuePair<string, string> entry in paramsDictionary)
+
+                // собираем ошибку, если превышает допустимый диапозон для нашего типа
+                if (errorParams.ContainsValue(ExceptionType.Overflow))
                 {
-                    listParams = listParams + $"{entry.Key} = {entry.Value}\n";
+                    listParams = "";
+                    invalidParams = "";
+                    string exceptionMessageOverflow = "";
+
+                    foreach (KeyValuePair<string, ExceptionType> entry in errorParams)
+                    {
+                        if (entry.Value == ExceptionType.Overflow)
+                        {
+                            invalidParams = invalidParams + $"{entry.Key}; ";
+
+                            listParams = listParams + $"{entry.Key} = {inputParams[entry.Key]}\n";
+                        }
+
+                    }
+                    message = "Введённое значение должно находится в диапозоне от -2147483648 до 2147483647";
+                    exceptionMessageOverflow = $"{message} {invalidParams}\n" +
+                        $"{listParams}";
+                    Console.ResetColor();
+                    Console.BackgroundColor = ConsoleColor.Green;
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.WriteLine(exceptionMessageOverflow);
+
+                    Console.ResetColor();
                 }
+                
 
-                exceptinMessage = $"{line}\n{message} {invalidParams}\n{line}\n" +
-                    $"{listParams}";
-
-                Console.WriteLine(exceptinMessage);
-                Console.ResetColor();
             } else if (severity == Severity.Warning)
             {
                 Console.BackgroundColor = ConsoleColor.Yellow;
