@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35122.118
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Loops and recursion", "Loops and recursion\Loops and recursion.csproj", "{77D6D4B5-56AA-4977-9D17-87EAFA068CAE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{77D6D4B5-56AA-4977-9D17-87EAFA068CAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77D6D4B5-56AA-4977-9D17-87EAFA068CAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77D6D4B5-56AA-4977-9D17-87EAFA068CAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77D6D4B5-56AA-4977-9D17-87EAFA068CAE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F44BF3AD-E6B8-4E45-BB7C-7CE5A8E75E37}
+	EndGlobalSection
+EndGlobal
