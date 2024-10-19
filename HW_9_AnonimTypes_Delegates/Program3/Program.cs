@@ -1,23 +1,24 @@
-﻿using Program2;
+﻿using System.Security.Cryptography.X509Certificates;
 
 namespace Program3
 {
     internal class Program
     {
+
         static void Main(string[] args)
         {
             int _countRequest = 0;
 
-
-            bool PlanetValidator(string Name)
+            (Planet?, string?) PlanetValidator(string Name)
             {
                 _countRequest++;
                 if (_countRequest % 3 == 0)
                 {
-                    return true;
+                    return new(null, "Вы спрашиваете слишком часто");
                 }
-                return false;
+                return new(null, "");
             }
+
 
             // Задание 3
             var SolarSystem = new CataloguePlanets();
@@ -28,7 +29,7 @@ namespace Program3
 
             Console.WriteLine(SolarSystem.GetPlanet("Венера", PlanetValidator));
 
-            Console.WriteLine(SolarSystem.GetPlanet("Венера", PlanetValidator));
+            Console.WriteLine(SolarSystem.GetPlanet("Земля", PlanetValidator));
 
             Console.WriteLine(SolarSystem.GetPlanet("Венера", PlanetValidator));
 
@@ -44,9 +45,9 @@ namespace Program3
 
                 if (_countRequest % 3 == 0)
                 {
-                    return true;
+                    return new(null, "Вы спрашиваете слишком часто");
                 }
-                return false;
+                return new(null, "");
 
             }));
 
@@ -57,9 +58,9 @@ namespace Program3
 
                 if (_countRequest % 3 == 0)
                 {
-                    return true;
+                    return new(null, "Вы спрашиваете слишком часто");
                 }
-                return false;
+                return new(null, "");
 
             }));
 
@@ -70,13 +71,13 @@ namespace Program3
 
                 if (_countRequest % 3 == 0)
                 {
-                    return true;
+                    return new(null, "Вы спрашиваете слишком часто");
                 }
-                return false;
+                return new(null, "");
 
             }));
 
-            // 4 запрос
+            //4 запрос
             Console.WriteLine(SolarSystem.GetPlanet("Лимпопо", name =>
             {
 
@@ -84,9 +85,9 @@ namespace Program3
 
                 if (_countRequest % 3 == 0)
                 {
-                    return true;
+                    return new(null, "Вы спрашиваете слишком часто");
                 }
-                return false;
+                return new(null, "");
 
             }));
         }

@@ -5,29 +5,28 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Program2
+namespace Program3
 {
     internal class CataloguePlanets
     {
-        private Planet _planet2;
-        private Planet _planet3;
-        private Planet _planet4;
-        private List<Planet> _planetslist;
+        public delegate (Planet?, string?) PlanetValidatorDelegate(string name);
+        private List<Planet> _planetslist = new();
         private int _countRequest = 0;
 
         public CataloguePlanets()
         {
-            _planet2 = new("Венера", 2, 1500, null);
-            _planet3 = new("Земля", 3, 2500, _planet2);
-            _planet4 = new("Марс", 4, 3500, _planet3);
-            _planetslist = new List<Planet>(new[] { _planet2, _planet3, _planet4 });
+            _planetslist.Add(new("Венера", 2, 1500, null));
+            _planetslist.Add(new("Земля", 3, 2500, _planetslist.Last()));
+            _planetslist.Add(new("Марс", 4, 3500, _planetslist.Last()));
         }
         public (int? id, int? length, string? error) GetPlanet(string name, PlanetValidatorDelegate validatorDelegate)
         {
 
-            if (validatorDelegate(name) == true)
+            string ErrorMessage = validatorDelegate(name).Item2;
+
+            if (ErrorMessage != "")
             {
-                return (id: null, length: null, error: "Вы спрашиваете слишком часто");
+                return (id: null, length: null, error: ErrorMessage);
             }
 
             foreach (var planet in _planetslist)
@@ -43,6 +42,6 @@ namespace Program2
             return (id: null, length: null, error: "Планету найти не удалось");
         }
 
-        public delegate bool PlanetValidatorDelegate(string name);
+
     }
 }
