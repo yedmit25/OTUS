@@ -34,7 +34,8 @@
                 downloader.ImageStarted += () => Console.WriteLine("Скачивание файла началось");
                 downloader.ImageCompleted += () => Console.WriteLine("Скачивание файла закончилось");
                 downloaders.Add(downloader);
-                downloadTasks.Add(downloader.Download(fileName));
+                // Передаем токен отмены в метод Download
+                downloadTasks.Add(downloader.Download(fileName, cancellation.Token));
             }
 
             // Ожидание нажатия клавиши
@@ -59,6 +60,16 @@
                     }
                 }
                 await Task.Delay(500); // Ожидание небольшого времени перед следующей проверкой
+            }
+
+            // Ожидание завершения всех загрузок
+            try
+            {
+                await Task.WhenAll(downloadTasks);
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine("Загрузка была отменена.");
             }
 
             Console.WriteLine("Загрузка завершена. Нажмите любую клавишу для выхода.");

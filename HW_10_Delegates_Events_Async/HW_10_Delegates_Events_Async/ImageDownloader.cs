@@ -19,14 +19,22 @@ namespace HW_10_Delegates_Events_Async
             remoteUri = uri;
         }
 
-        public async Task Download(string fileName)
+        public async Task Download(string fileName, CancellationToken token)
         {
             ImageStarted?.Invoke();
             Console.WriteLine($"Качаю \"{fileName}\" из \"{remoteUri}\" .......\n");
 
             using (var myWebClient = new WebClient())
             {
-                await myWebClient.DownloadFileTaskAsync(remoteUri, fileName);
+                try
+                {
+                    await myWebClient.DownloadFileTaskAsync(remoteUri, fileName);
+                }
+                catch (OperationCanceledException) when (token.IsCancellationRequested)
+                {
+                    Console.WriteLine($"Загрузка \"{fileName}\" отменена.");
+                    return;
+                }
             }
 
             ImageCompleted?.Invoke();
