@@ -49,8 +49,7 @@ namespace JewelryBot
         {
             var replyKeyboard = new ReplyKeyboardMarkup(new[]
             {
-                new[] { new KeyboardButton("Заказы"), new KeyboardButton("Товары") },
-                new[] { new KeyboardButton("Корзина") }
+                new[] { new KeyboardButton("Товары"), new KeyboardButton("Корзина") }
             })
             {
                 ResizeKeyboard = true // Автоматическая подстройка размера клавиатуры
@@ -69,12 +68,20 @@ namespace JewelryBot
                 {
                     await HandleStartCommand(update);
                 }
+                else if (messageText == "Товары")
+                {
+                    await ShowProducts(update.Message.Chat.Id);
+                }
+                else if (messageText == "Корзина")
+                {
+                    await ViewCart(botClient, update.Message.Chat.Id);
+                }
                 else
                 {
                     // Устанавливаем имя пользователя
                     await SetUserName(update.Message.Chat.Id, messageText);
-                    // После установки имени показываем продукты
-                    await ShowProducts(update.Message.Chat.Id);
+                    // Поскольку пользователь уже установил имя, можем предложить меню
+                    await SendMainMenu(update.Message.Chat.Id);
                 }
             }
             else if (update.Type == UpdateType.CallbackQuery)
@@ -94,14 +101,16 @@ namespace JewelryBot
             {
                 // Пользователь существует, приветствуем его
                 await botClient.SendTextMessageAsync(update.Message.Chat.Id, $"Рады вас видеть снова, {existingUser}!");
-                // Выводим каталог товаров после приветствия
-                await ShowProducts(update.Message.Chat.Id);
             }
             else
             {
                 // Пользователь не существует, прося представиться
                 await botClient.SendTextMessageAsync(update.Message.Chat.Id, "Пожалуйста, представьтесь (введите ваше имя):");
+                return; // завершение метода, чтобы не показывать меню сразу
             }
+
+            // Отправляем основное меню после приветствия
+            await SendMainMenu(update.Message.Chat.Id);
         }
 
         private static async Task HandleCallbackQuery(ITelegramBotClient botClient, CallbackQuery callbackQuery)
