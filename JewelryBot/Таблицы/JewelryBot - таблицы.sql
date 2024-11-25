@@ -1,46 +1,96 @@
-CREATE TABLE customers (
-    customer_id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    address VARCHAR(255),  -- Поле для хранения адреса
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- public.cart определение
+
+-- Drop table
+
+-- DROP TABLE public.cart;
+
+CREATE TABLE public.cart (
+  cart_id serial4 NOT NULL,
+  customer_id int4 NOT NULL,
+  product_id int4 NOT NULL,
+  quantity int4 DEFAULT 1 NOT NULL,
+  created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+  CONSTRAINT cart_pkey PRIMARY KEY (cart_id),
+  CONSTRAINT unique_customer_product null
 );
 
-CREATE TABLE products (
-    product_id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    price DECIMAL(10, 2) NOT NULL,
-    image_url VARCHAR(255),  -- Поле для хранения ссылки на изображение продукта
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- Permissions
+
+ALTER TABLE public.cart OWNER TO postgres;
+GRANT ALL ON TABLE public.cart TO postgres;
+
+
+-- public.cart внешние включи
+
+ALTER TABLE public.cart ADD CONSTRAINT cart_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES public.customers(customer_id) ON DELETE CASCADE;
+ALTER TABLE public.cart ADD CONSTRAINT cart_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(product_id) ON DELETE CASCADE;
+
+
+-- public.customers определение
+
+-- Drop table
+
+-- DROP TABLE public.customers;
+
+CREATE TABLE public.customers (
+  customer_id serial4 NOT NULL,
+  username varchar(50) NOT NULL,
+  email varchar(100) NOT NULL,
+  address varchar(255) NULL,
+  created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+  updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+  CONSTRAINT customers_email_key UNIQUE (email),
+  CONSTRAINT customers_pkey PRIMARY KEY (customer_id),
+  CONSTRAINT customers_username_key UNIQUE (username)
 );
 
-CREATE TABLE cart (
-    cart_id SERIAL PRIMARY KEY,
-    customer_id INT NOT NULL REFERENCES customers(customer_id) ON DELETE CASCADE,
-    product_id INT NOT NULL REFERENCES products(product_id) ON DELETE CASCADE,
-    quantity INT NOT NULL DEFAULT 1,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- Permissions
+
+ALTER TABLE public.customers OWNER TO postgres;
+GRANT ALL ON TABLE public.customers TO postgres;
+
+-- public.orders определение
+
+-- Drop table
+
+-- DROP TABLE public.orders;
+
+CREATE TABLE public.orders (
+  order_id serial4 NOT NULL,
+  customer_id int4 NOT NULL,
+  order_date timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+  total_amount numeric(10, 2) NOT NULL,
+  status varchar(50) DEFAULT 'pending'::character varying NOT NULL
 );
 
-ALTER TABLE cart
-ADD CONSTRAINT unique_customer_product UNIQUE (customer_id, product_id);
+-- Permissions
 
+ALTER TABLE public.orders OWNER TO postgres;
+GRANT ALL ON TABLE public.orders TO postgres;
 
-CREATE TABLE orders (
-    order_id SERIAL PRIMARY KEY,
-    customer_id INT NOT NULL REFERENCES customers(customer_id) ON DELETE CASCADE,
-    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    total_amount DECIMAL(10, 2) NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'pending'
+-- public.products определение
+
+-- Drop table
+
+-- DROP TABLE public.products;
+
+CREATE TABLE public.products (
+  product_id serial4 NOT NULL,
+  "name" varchar(100) NOT NULL,
+  description text NULL,
+  price numeric(10, 2) NOT NULL,
+  image_url varchar(255) NULL,
+  created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+  updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+  CONSTRAINT products_pkey PRIMARY KEY (product_id)
 );
 
+-- Permissions
 
---- 
-INSERT INTO products (product_id, name, price, image_url) VALUES
-(1, 'Кольцо', 500, 'https://i.pinimg.com/originals/ab/1d/07/ab1d071caa9fb4b8e4de50121008661c.jpg'),
-(2, 'Серьги', 1000, 'https://i.pinimg.com/736x/60/f0/71/60f07112176bb62889670bdd15e87423.jpg'),
-(3, 'Браслет', 750, 'https://i.pinimg.com/originals/68/09/e7/6809e7bb8c8ca15cdd8dcd2823c608a6.jpg');
+ALTER TABLE public.products OWNER TO postgres;
+GRANT ALL ON TABLE public.products TO postgres;
+
+
+
+
 

@@ -10,6 +10,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System;
+using System.Text;
 
 namespace JewelryBot
 {
@@ -69,19 +70,19 @@ namespace JewelryBot
                 }
                 else
                 {
-                    // Проверяем состояние ожидания
-                    if (UserStates.TryGetValue(userId, out var userState) && userState.AwaitingName)
+                    // Проверяем состояние ожидания для имени
+                    if (UserStates.TryGetValue(userId, out var currentUserState) && currentUserState.AwaitingName)
                     {
                         string name = messageText;
                         await botClient.SendTextMessageAsync(userId, "Введите ваш email:");
-                        userState.Name = name; // сохраняем имя
-                        userState.AwaitingName = false;
-                        userState.AwaitingEmail = true; // теперь ждем email
+                        currentUserState.Name = name; // сохраняем имя
+                        currentUserState.AwaitingName = false;
+                        currentUserState.AwaitingEmail = true; // теперь ждем email
                     }
-                    else if (UserStates.TryGetValue(userId, out userState) && userState.AwaitingEmail)
+                    else if (UserStates.TryGetValue(userId, out currentUserState) && currentUserState.AwaitingEmail)
                     {
                         string email = messageText;
-                        await SetUser(botClient, userId, userState.Name, email);
+                        await SetUser(botClient, userId, currentUserState.Name, email);
                         await ShowMainMenu(botClient, userId);
                         UserStates.Remove(userId);
                     }
@@ -106,6 +107,47 @@ namespace JewelryBot
                         {
                             await botClient.SendTextMessageAsync(userId, "Ваша корзина пуста или не существует.");
                         }
+                    }
+                    else if (messageText == "Заказы")
+                    {
+                        await ShowOrderDetails(botClient, userId);
+                    }
+                    // Обработчик для новых кнопок
+                    else if (messageText == "Оформить заказ")
+                    {
+                        await botClient.SendTextMessageAsync(userId, "Введите адрес доставки:");
+                        UserStates[userId] = new UserState { AwaitingAddress = true };
+                    }
+                    else if (UserStates.TryGetValue(userId, out currentUserState) && currentUserState.AwaitingAddress)
+                    {
+                        string address = messageText;
+
+                        // Получаем текущий черновик заказа
+                        using IDbConnection dbConnection = new NpgsqlConnection(ConnectionString);
+                        var currentOrderId = await dbConnection.QuerySingleOrDefaultAsync<int?>(
+                            "SELECT order_id FROM orders WHERE customer_id = @UserId AND status = 'draft'",
+                            new { UserId = userId });
+
+                        if (currentOrderId != null)
+                        {
+                            // Обновляем заказ с адресом доставки
+                            await dbConnection.ExecuteAsync(
+                                "UPDATE orders SET shipping_address = @Address, status = 'Paid' WHERE order_id = @OrderId",
+                                new { Address = address, OrderId = currentOrderId.Value });
+
+                            await botClient.SendTextMessageAsync(userId, $"Заказ оформлен! Адрес доставки: {address}");
+                        }
+                        else
+                        {
+                            await botClient.SendTextMessageAsync(userId, "Не удалось оформить заказ.");
+                        }
+
+                        // Убираем состояние ожидания
+                        UserStates.Remove(userId);
+                    }
+                    else if (messageText == "Выход из заказа")
+                    {
+                        await ShowMainMenu(botClient, userId); // возвращаем в главное меню
                     }
                     else
                     {
@@ -245,14 +287,14 @@ namespace JewelryBot
 
                 // Создаем cart с новым order_id
                 await dbConnection.ExecuteAsync(
-                    "INSERT INTO cart (customer_id, product_id, quantity, order_id) VALUES (@UserId, @ProductId, 1, @OrderId) ON CONFLICT (customer_id, product_id) DO UPDATE SET quantity = cart.quantity + 1;",
+                    "INSERT INTO cart (customer_id, product_id, quantity, order_id) VALUES (@UserId, @ProductId, 1, @OrderId) ON CONFLICT (customer_id, product_id, order_id) DO UPDATE SET quantity = cart.quantity + 1;",
                     new { UserId = userId, ProductId = productId, OrderId = currentOrder });
             }
             else
             {
                 // Если черновик заказа есть, просто добавляем товар в cart
                 await dbConnection.ExecuteAsync(
-                    "INSERT INTO cart (customer_id, product_id, quantity, order_id) VALUES (@UserId, @ProductId, 1, @OrderId) ON CONFLICT (customer_id, product_id) DO UPDATE SET quantity = cart.quantity + 1;",
+                    "INSERT INTO cart (customer_id, product_id, quantity, order_id) VALUES (@UserId, @ProductId, 1, @OrderId) ON CONFLICT (customer_id, product_id, order_id) DO UPDATE SET quantity = cart.quantity + 1;",
                     new { UserId = userId, ProductId = productId, OrderId = currentOrder });
             }
         }
@@ -261,10 +303,16 @@ namespace JewelryBot
         {
             using IDbConnection dbConnection = new NpgsqlConnection(ConnectionString);
 
+            // Пытаемся найти текущий черновик заказа
+            var currentOrder = await dbConnection.QuerySingleOrDefaultAsync<int?>(
+                "SELECT order_id FROM orders WHERE customer_id = @UserId AND status = 'draft'",
+                new { UserId = userId });
+
             // Получаем текущую корзину и ее order_id
             var currentCartItem = await dbConnection.QuerySingleOrDefaultAsync<(int Quantity, int OrderId)>(
-                "SELECT quantity, order_id FROM cart WHERE customer_id = @UserId AND product_id = @ProductId",
-                new { UserId = userId, ProductId = productId });
+                "SELECT quantity, order_id FROM cart WHERE customer_id = @UserId AND product_id = @ProductId and order_id = @currentOrder",
+                new { UserId = userId, ProductId = productId, currentOrder = currentOrder});
+
 
             if (currentCartItem.Quantity > 0)
             {
@@ -273,15 +321,15 @@ namespace JewelryBot
                 if (newQuantity > 0)
                 {
                     await dbConnection.ExecuteAsync(
-                        "UPDATE cart SET quantity = @Quantity WHERE customer_id = @UserId AND product_id = @ProductId;",
-                        new { UserId = userId, ProductId = productId, Quantity = newQuantity });
+                        "UPDATE cart SET quantity = @Quantity WHERE customer_id = @UserId AND product_id = @ProductId and order_id = @currentOrder;",
+                        new { UserId = userId, ProductId = productId, Quantity = newQuantity, currentOrder = currentCartItem.OrderId });
                 }
                 else
                 {
                     // Удаляем товар из корзины, если количество 0
                     await dbConnection.ExecuteAsync(
-                        "DELETE FROM cart WHERE customer_id = @UserId AND product_id = @ProductId",
-                        new { UserId = userId, ProductId = productId });
+                        "DELETE FROM cart WHERE customer_id = @UserId AND product_id = @ProductId and order_id = @currentOrder",
+                        new { UserId = userId, ProductId = productId, currentOrder = currentCartItem.OrderId });
                 }
 
                 // Проверяем корзину на пустоту
@@ -298,6 +346,7 @@ namespace JewelryBot
                 }
             }
         }
+
 
         private static async Task ViewCart(ITelegramBotClient botClient, long userId, int orderId)
         {
@@ -357,6 +406,63 @@ namespace JewelryBot
             {
                 await HandleErrorAsync(botClient, ex, CancellationToken.None);
             }
+        }
+
+        private static async Task ShowOrderDetails(ITelegramBotClient botClient, long userId)
+        {
+            using IDbConnection dbConnection = new NpgsqlConnection(ConnectionString);
+            var currentOrder = await dbConnection.QuerySingleOrDefaultAsync<int?>(
+                "SELECT order_id FROM orders WHERE customer_id = @UserId AND status = 'draft'",
+                new { UserId = userId });
+
+            if (currentOrder == null)
+            {
+                await botClient.SendTextMessageAsync(userId, "Ваша корзина пуста или заказа нет.");
+                return;
+            }
+
+            // Получаем состав корзины
+            var cartItems = await dbConnection.QueryAsync<(int ProductId, int Quantity)>(
+                "SELECT product_id, quantity FROM cart WHERE order_id = @OrderId",
+                new { OrderId = currentOrder });
+
+            if (!cartItems.Any())
+            {
+                await botClient.SendTextMessageAsync(userId, "Ваша корзина пуста.");
+                return;
+            }
+
+            decimal totalCost = 0;
+            var orderDetailsMessage = new StringBuilder("Ваш заказ:\n");
+
+            foreach (var item in cartItems)
+            {
+                // Получаем информацию о продукте
+                var product = await dbConnection.QuerySingleOrDefaultAsync<(int ProductId, string Name, decimal Price)>(
+                    "SELECT product_id, name, price FROM products WHERE product_id = @ProductId",
+                    new { ProductId = item.ProductId });
+
+                if (product == default) // если продукт не найден
+                {
+                    continue; // пропускаем итерацию
+                }
+
+                orderDetailsMessage.AppendLine($"{product.Name} - Цена: {product.Price}₽, Количество: {item.Quantity}");
+                totalCost += product.Price * item.Quantity;
+            }
+
+            orderDetailsMessage.AppendLine($"Общая стоимость: {totalCost}₽");
+
+            // Показываем кнопки управления
+            var replyMarkup = new ReplyKeyboardMarkup(new[]
+            {
+                new[] { new KeyboardButton("Выход из заказа"), new KeyboardButton("Назад к меню"), new KeyboardButton("Оформить заказ") }
+            })
+            {
+                ResizeKeyboard = true // для более компактного отображения кнопок
+            };
+
+            await botClient.SendTextMessageAsync(userId, orderDetailsMessage.ToString(), replyMarkup: replyMarkup);
         }
 
         private static Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)

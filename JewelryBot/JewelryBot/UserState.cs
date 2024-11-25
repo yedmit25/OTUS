@@ -11,5 +11,6 @@ namespace JewelryBot
         public string Name { get; set; }
         public bool AwaitingName { get; set; }
         public bool AwaitingEmail { get; set; }
+        public bool AwaitingAddress { get; set; }
     }
 }
