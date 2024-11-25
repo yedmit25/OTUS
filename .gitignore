@@ -397,3 +397,4 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 JewelryBot/.editorconfig
+JewelryBot/appsettings.json
