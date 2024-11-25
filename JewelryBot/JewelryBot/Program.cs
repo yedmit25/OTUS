@@ -89,11 +89,6 @@ namespace JewelryBot
                     {
                         await ShowProducts(botClient, userId);
                     }
-                    //else if (messageText == "Корзина")
-                    //{
-                    //    await ViewCart(botClient, userId);
-                    //}
-
                     else if (messageText == "Корзина")
                     {
                         // Получаем текущий черновик заказа
@@ -134,7 +129,7 @@ namespace JewelryBot
                 ResizeKeyboard = true // для более компактного отображения кнопок
             };
 
-            //await botClient.SendTextMessageAsync(chatId, "Выберите опцию:", replyMarkup: keyboard);
+            await botClient.SendTextMessageAsync(chatId, "Выберите опцию:", replyMarkup: keyboard);
         }
 
         private static async Task HandleCallbackQuery(ITelegramBotClient botClient, CallbackQuery callbackQuery)
