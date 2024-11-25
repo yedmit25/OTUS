@@ -398,3 +398,4 @@ FodyWeavers.xsd
 *.sln.iml
 JewelryBot/.editorconfig
 JewelryBot/appsettings.json
+JewelryBot/JewelryBot/appsettings.json
