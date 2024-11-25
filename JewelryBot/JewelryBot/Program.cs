@@ -112,7 +112,11 @@ namespace JewelryBot
                     {
                         await ShowOrderDetails(botClient, userId);
                     }
-                    // Обработчик для новых кнопок
+                    else if (messageText == "Отменить заказ")
+                    {
+                        await CancelOrder(userId);
+                        await botClient.SendTextMessageAsync(userId, "Ваш заказ был отменен.");
+                    }
                     else if (messageText == "Оформить заказ")
                     {
                         await botClient.SendTextMessageAsync(userId, "Введите адрес доставки:");
@@ -453,16 +457,38 @@ namespace JewelryBot
 
             orderDetailsMessage.AppendLine($"Общая стоимость: {totalCost}₽");
 
-            // Показываем кнопки управления
+            // Пользовательский интерфейс с кнопками для управления
             var replyMarkup = new ReplyKeyboardMarkup(new[]
             {
-                new[] { new KeyboardButton("Выход из заказа"), new KeyboardButton("Назад к меню"), new KeyboardButton("Оформить заказ") }
+                new[] { new KeyboardButton("Выход из заказа"), new KeyboardButton("Назад к меню"), new KeyboardButton("Оформить заказ"), new KeyboardButton("Отменить заказ") }
             })
             {
                 ResizeKeyboard = true // для более компактного отображения кнопок
             };
 
             await botClient.SendTextMessageAsync(userId, orderDetailsMessage.ToString(), replyMarkup: replyMarkup);
+        }
+
+        private static async Task CancelOrder(long userId)
+        {
+            using IDbConnection dbConnection = new NpgsqlConnection(ConnectionString);
+
+            // Получаем текущий черновик заказа
+            var currentOrder = await dbConnection.QuerySingleOrDefaultAsync<int?>(
+                "SELECT order_id FROM orders WHERE customer_id = @UserId AND status = 'draft'",
+                new { UserId = userId });
+
+            if (currentOrder != null)
+            {
+                // Обновляем статус заказа на 'Canceled'
+                await dbConnection.ExecuteAsync(
+                    "UPDATE orders SET status = 'Canceled' WHERE order_id = @OrderId",
+                    new { OrderId = currentOrder });
+            }
+            else
+            {
+                await botClient.SendTextMessageAsync(userId, "У вас нет активных заказов для отмены.");
+            }
         }
 
         private static Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
