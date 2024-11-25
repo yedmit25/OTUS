@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System;
 
 namespace JewelryBot
 {
@@ -88,9 +89,28 @@ namespace JewelryBot
                     {
                         await ShowProducts(botClient, userId);
                     }
+                    //else if (messageText == "Корзина")
+                    //{
+                    //    await ViewCart(botClient, userId);
+                    //}
+
                     else if (messageText == "Корзина")
                     {
-                        await ViewCart(botClient, userId);
+                        // Получаем текущий черновик заказа
+                        using IDbConnection dbConnection = new NpgsqlConnection(ConnectionString);
+                        var currentOrder = await dbConnection.QuerySingleOrDefaultAsync<int?>(
+                            "SELECT order_id FROM orders WHERE customer_id = @UserId AND status = 'draft'",
+                            new { UserId = userId });
+
+                        if (currentOrder != null)
+                        {
+                            // Вызов ViewCart с правильным orderId
+                            await ViewCart(botClient, userId, currentOrder.Value);
+                        }
+                        else
+                        {
+                            await botClient.SendTextMessageAsync(userId, "Ваша корзина пуста или не существует.");
+                        }
                     }
                     else
                     {
@@ -135,10 +155,27 @@ namespace JewelryBot
                 await RemoveFromCart(userId, productId);
                 await botClient.AnswerCallbackQueryAsync(callbackQuery.Id, "Количество товара уменьшено.");
             }
-            else if (action == "view")
+
+            else if (action == "Корзина")
             {
-                await ViewCart(botClient, userId);
+                // Получаем текущий черновик заказа
+                using IDbConnection dbConnection = new NpgsqlConnection(ConnectionString);
+                var currentOrder = await dbConnection.QuerySingleOrDefaultAsync<int?>(
+                    "SELECT order_id FROM orders WHERE customer_id = @UserId AND status = 'draft'",
+                    new { UserId = userId });
+
+                if (currentOrder != null)
+                {
+                    // Вызов ViewCart с правильным orderId
+                    await ViewCart(botClient, userId, currentOrder.Value);
+                }
+                else
+                {
+                    await botClient.SendTextMessageAsync(userId, "Ваша корзина пуста или не существует.");
+                }
             }
+
+
         }
 
         private static async Task SetUser(ITelegramBotClient botClient, long chatId, string name, string email)
@@ -198,24 +235,46 @@ namespace JewelryBot
         private static async Task AddToCart(long userId, int productId)
         {
             using IDbConnection dbConnection = new NpgsqlConnection(ConnectionString);
-            await dbConnection.ExecuteAsync(
-                "INSERT INTO cart (customer_id, product_id, quantity) VALUES (@UserId, @ProductId, 1) ON CONFLICT (customer_id, product_id) DO UPDATE SET quantity = cart.quantity + 1;",
-                new { UserId = userId, ProductId = productId });
+
+            // Пытаемся найти текущий черновик заказа
+            var currentOrder = await dbConnection.QuerySingleOrDefaultAsync<int?>(
+                "SELECT order_id FROM orders WHERE customer_id = @UserId AND status = 'draft'",
+                new { UserId = userId });
+
+            if (currentOrder == null)
+            {
+                // Если заказа нет, создаем новый
+                currentOrder = await dbConnection.ExecuteScalarAsync<int>(
+                    "INSERT INTO orders (customer_id, status) VALUES (@UserId, 'draft') RETURNING order_id;",
+                    new { UserId = userId });
+
+                // Создаем cart с новым order_id
+                await dbConnection.ExecuteAsync(
+                    "INSERT INTO cart (customer_id, product_id, quantity, order_id) VALUES (@UserId, @ProductId, 1, @OrderId) ON CONFLICT (customer_id, product_id) DO UPDATE SET quantity = cart.quantity + 1;",
+                    new { UserId = userId, ProductId = productId, OrderId = currentOrder });
+            }
+            else
+            {
+                // Если черновик заказа есть, просто добавляем товар в cart
+                await dbConnection.ExecuteAsync(
+                    "INSERT INTO cart (customer_id, product_id, quantity, order_id) VALUES (@UserId, @ProductId, 1, @OrderId) ON CONFLICT (customer_id, product_id) DO UPDATE SET quantity = cart.quantity + 1;",
+                    new { UserId = userId, ProductId = productId, OrderId = currentOrder });
+            }
         }
 
         private static async Task RemoveFromCart(long userId, int productId)
         {
             using IDbConnection dbConnection = new NpgsqlConnection(ConnectionString);
 
-            // Получаем текущее количество
-            var currentQuantity = await dbConnection.QuerySingleOrDefaultAsync<int>(
-                "SELECT quantity FROM cart WHERE customer_id = @UserId AND product_id = @ProductId",
+            // Получаем текущую корзину и ее order_id
+            var currentCartItem = await dbConnection.QuerySingleOrDefaultAsync<(int Quantity, int OrderId)>(
+                "SELECT quantity, order_id FROM cart WHERE customer_id = @UserId AND product_id = @ProductId",
                 new { UserId = userId, ProductId = productId });
 
-            if (currentQuantity > 0)
+            if (currentCartItem.Quantity > 0)
             {
-                // Уменьшаем количество
-                var newQuantity = currentQuantity - 1;
+                var newQuantity = currentCartItem.Quantity - 1;
+
                 if (newQuantity > 0)
                 {
                     await dbConnection.ExecuteAsync(
@@ -229,17 +288,30 @@ namespace JewelryBot
                         "DELETE FROM cart WHERE customer_id = @UserId AND product_id = @ProductId",
                         new { UserId = userId, ProductId = productId });
                 }
+
+                // Проверяем корзину на пустоту
+                var areCartItemsEmpty = await dbConnection.ExecuteScalarAsync<int>(
+                    "SELECT COUNT(*) FROM cart WHERE order_id = @OrderId",
+                    new { OrderId = currentCartItem.OrderId });
+
+                if (areCartItemsEmpty == 0)
+                {
+                    // Удаляем заказ, если корзина пустая
+                    await dbConnection.ExecuteAsync(
+                        "DELETE FROM orders WHERE order_id = @OrderId",
+                        new { OrderId = currentCartItem.OrderId });
+                }
             }
         }
 
-        private static async Task ViewCart(ITelegramBotClient botClient, long userId)
+        private static async Task ViewCart(ITelegramBotClient botClient, long userId, int orderId)
         {
             try
             {
                 using IDbConnection dbConnection = new NpgsqlConnection(ConnectionString);
                 var cartItems = await dbConnection.QueryAsync<(int ProductId, int Quantity)>(
-                "SELECT product_id, quantity FROM cart WHERE customer_id = @UserId",
-                new { UserId = userId });
+                    "SELECT product_id, quantity FROM cart WHERE order_id = @OrderId",
+                    new { OrderId = orderId });
 
                 if (!cartItems.Any())
                 {
@@ -267,11 +339,11 @@ namespace JewelryBot
                         var message = $"{product.Name} - Цена: {product.Price}₽, Количество: {item.Quantity}";
                         var replyMarkup = new InlineKeyboardMarkup(new[]
                         {
-                            new[] {
-                                InlineKeyboardButton.WithCallbackData("Добавить", $"add_{product.ProductId}"),
-                                InlineKeyboardButton.WithCallbackData("Удалить", $"remove_{product.ProductId}")
-                            }
-                        });
+                    new[] {
+                        InlineKeyboardButton.WithCallbackData("Добавить", $"add_{product.ProductId}"),
+                        InlineKeyboardButton.WithCallbackData("Удалить", $"remove_{product.ProductId}")
+                    }
+                });
 
                         await botClient.SendPhotoAsync(
                             userId,
