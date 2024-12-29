@@ -5,7 +5,9 @@ VisualStudioVersion = 17.10.35122.118
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HW_13_Observable", "HW_13_Observable\HW_13_Observable.csproj", "{70CC301A-0B71-4AFC-860F-4D764EBE891D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW13_Library", "HW13_Library\HW13_Library.csproj", "{8F6EC948-B2D7-47C7-9293-B0704733B5B7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HW13_Library", "HW13_Library\HW13_Library.csproj", "{8F6EC948-B2D7-47C7-9293-B0704733B5B7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW_13_Poem", "HW_13_Poem\HW_13_Poem.csproj", "{939C39E6-5C45-4D67-9288-44A7FA530867}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{8F6EC948-B2D7-47C7-9293-B0704733B5B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F6EC948-B2D7-47C7-9293-B0704733B5B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F6EC948-B2D7-47C7-9293-B0704733B5B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{939C39E6-5C45-4D67-9288-44A7FA530867}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{939C39E6-5C45-4D67-9288-44A7FA530867}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{939C39E6-5C45-4D67-9288-44A7FA530867}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{939C39E6-5C45-4D67-9288-44A7FA530867}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
